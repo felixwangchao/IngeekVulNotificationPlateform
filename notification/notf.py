@@ -1,90 +1,174 @@
 #!/usr/bin
+# -*- coding: utf-8 -*-
 import time
 import httplib
 import lxml.etree as etree
 import lxml.html.soupparser as soupparser
 from bs4 import BeautifulSoup
 
-# list of vul
-list=[]
-
 # list of keyword
 key = ["Redhat","Microsoft+Windows","Apple+Mac+OS","IBM+AIX","HP-UX","Microsoft+SQL+Server","Oracle+MySQL+Server","PostgreSQL","apache","Apache+Tomcat","jboss","Oracle+WebLogic","IBM+WebSphere","Cisco","Squid","PHP","Nginx","Samba","ISC+BIND","Check+Point"]
 
-# url to read
-url_list = []
 
-def print_summary(list):
-	
+def print_summary():
+
+	# Print a summary of vulnerability	
+
 	print
 	print "************************* summary *************************"
 	print
-
-	if len(list) > 0 :
-		for event in list:
-			print "[*]",event
-	else:
-		print "[*]There is no new vul"
-		
-
+	
+	for event in Vul.list:
+		print "[*]",event.name
+		print "[*]",event.url		
 	print
-	print "************************************************************"
+	print
+
 
 def print_welcome():
+
+	# Print a welcome and system time	
+
 	print
 	print "**************** Vulnerability alert script ****************"
 	print
+	print "[*]date: ",get_date()
 
+def get_detail():
 
-def get_detail(url_list):
-	print
+	# Get the detail of each vulnerability
+
 	print "************************* detail *************************"
-
-	for url in url_list:
-		conn = httplib.HTTPConnection("www.cnvd.org.cn")
-		conn.request(method="GET",url=url)
-		response = conn.getresponse()
-		res = response.read()
-		print "**********"
-		print
-		print res
-		print
-		print "**********"
-
-# generate time and date
-start_date = time.strftime("%Y-%m-%d")
-end_date = time.strftime("%Y-%m-%d")
-print_welcome()
-print "[*]date: ",start_date
-
-# generate url
-for keyword in key:
-	url = "http://www.cnvd.org.cn/flaw/list.htm?flag=true&keyword="+keyword+"&condition=1&keywordFlag=0&cnvdId=&cnvdIdFlag=0&baseinfoBeanbeginTime="+start_date+"&baseinfoBeanendTime="+end_date+"&baseinfoBeanFlag=0&refenceInfo=&referenceScope=-1&manufacturerId=-1&categoryId=-1&editionId=-1&causeIdStr=&threadIdStr=&serverityIdStr=&positionIdStr=";
-	print "[*]target keyword = ",keyword
+	
+	for event in Vul.list:
+		event.get_vul_detail()
 
 
-	# get web content
+
+def get_date():
+
+	# get system date	
+
+	return time.strftime("%Y-%m-%d")
+
+def generate_url(keyword):
+	
+	# generate target url by keywords
+	
+	url = "http://www.cnvd.org.cn/flaw/list.htm?flag=true&keyword="+keyword+"&condition=1&keywordFlag=0&cnvdId=&cnvdIdFlag=0&baseinfoBeanbeginTime="+get_date()+"&baseinfoBeanendTime="+get_date()+"&baseinfoBeanFlag=0&refenceInfo=&referenceScope=-1&manufacturerId=-1&categoryId=-1&editionId=-1&causeIdStr=&threadIdStr=&serverityIdStr=&positionIdStr=";
+	return url
+
+def get_webcontent(url):
+
+	# get web content by url	
+
+	# connection
 	conn = httplib.HTTPConnection("www.cnvd.org.cn")
 	conn.request(method="GET",url=url)
+	
+	# get content and return
 	response = conn.getresponse()
 	res = response.read()
+	return res
+
+def html_parser(html):
+
+	# parse the html 
 
 	# use beautifulsoup to parse HTML
-	soup = BeautifulSoup(res,"lxml")
+	soup = BeautifulSoup(html,"lxml")
 	try:
 		for item in soup.find('tr',class_='current').parent.find_all('a'):
-			list.append(item['title'])
+			name = item['title']
 			sub_url = "http://www.cnvd.org.cn"+item['href']
-			url_list.append(sub_url)
 
-		print "	[*] New %s vul found" % keyword				
+			Vul(name,sub_url)
 
 	except AttributeError:
-	
-		print "	[*] No %s vul found" % keyword
+	 
+		pass
 
-print_summary(list)
-get_detail(url_list)
+def main():
+
+	global key
+
+	print_welcome()	
+
+	for keyword in key:
+
+		print "[*]test keyword = ",keyword
+
+		# get web content
+		res = get_webcontent(generate_url(keyword))
+
+		# parse the html
+		html_parser(res)
+
+
+	print_summary()
+	get_detail()
+
+class Vul:
+
+	list=[]
+	
+	def __init__(self,name,url):
+
+		# initialisation of vulnerability		
+			
+		self.name = name
+		self.date = get_date()
+		self.url = url
+		self.id = len(Vul.list)
+		Vul.list.append(self)
+
+	def get_vul_detail(self):
+
+		# connection and get content
+		self.__content = get_webcontent(self.url)
+
+		self.description = self.get_description(self.__content)
+		self.severity = self.get_severity(self.__content)
+
+	def get_description(self,content):
+
+		# get vulnerability description
+		soup = BeautifulSoup(content,"lxml")
+		string = "漏洞描述".decode('utf-8')
+		print string
+		for tag in soup.find('td',class_='alignRight',text=string).parent:
+			print "enter"
+			if tag.string == string:
+				continue
+			else:
+				print tag
+				for element in tag:
+					try:
+						print element.string
+					except:
+						pass
+			
+
+	def get_severity(self,content):
+		
+		# get vulnerability severity
+		soup = BeautifulSoup(content,"lxml")
+
+
+	def print_vul(self):
+		
+		# Print vulnerability information
+
+		print "Name: ", self.name
+		print "date: ", self.date
+		print "Description:"
+		print self.description
+		#print "severity: " self.severity
+		print "more information: ",self.url
+
+		
+
+main()
 
 	
 
