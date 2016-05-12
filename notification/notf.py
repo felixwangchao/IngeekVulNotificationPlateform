@@ -41,7 +41,9 @@ def get_detail():
 	print "************************* detail *************************"
 	
 	for event in Vul.list:
+
 		event.get_vul_detail()
+		event.print_vul()
 
 
 
@@ -55,7 +57,7 @@ def generate_url(keyword):
 	
 	# generate target url by keywords
 	
-	url = "http://www.cnvd.org.cn/flaw/list.htm?flag=true&keyword="+keyword+"&condition=1&keywordFlag=0&cnvdId=&cnvdIdFlag=0&baseinfoBeanbeginTime="+get_date()+"&baseinfoBeanendTime="+get_date()+"&baseinfoBeanFlag=0&refenceInfo=&referenceScope=-1&manufacturerId=-1&categoryId=-1&editionId=-1&causeIdStr=&threadIdStr=&serverityIdStr=&positionIdStr=";
+	url = "http://www.cnvd.org.cn/flaw/list.htm?flag=true&keyword="+keyword+"&condition=1&keywordFlag=0&cnvdId=&cnvdIdFlag=0&baseinfoBeanbeginTime=2016-5-10&baseinfoBeanendTime="+get_date()+"&baseinfoBeanFlag=0&refenceInfo=&referenceScope=-1&manufacturerId=-1&categoryId=-1&editionId=-1&causeIdStr=&threadIdStr=&serverityIdStr=&positionIdStr=";
 	return url
 
 def get_webcontent(url):
@@ -122,49 +124,127 @@ class Vul:
 		self.id = len(Vul.list)
 		Vul.list.append(self)
 
+
 	def get_vul_detail(self):
 
 		# connection and get content
 		self.__content = get_webcontent(self.url)
 
-		self.description = self.get_description(self.__content)
-		self.severity = self.get_severity(self.__content)
-
+		self.get_description(self.__content)
+		self.get_severity(self.__content)
+		self.get_CVEID(self.__content)		
+		self.get_influence(self.__content)		
+	
 	def get_description(self,content):
 
 		# get vulnerability description
 		soup = BeautifulSoup(content,"lxml")
 		string = "漏洞描述".decode('utf-8')
-		print string
-		for tag in soup.find('td',class_='alignRight',text=string).parent:
-			print "enter"
-			if tag.string == string:
-				continue
-			else:
-				print tag
-				for element in tag:
-					try:
-						print element.string
-					except:
-						pass
-			
+		self.description = ""
+		
+		# get all of tag who's class is alignRight
+		tag_tmp = soup.find('td',class_='alignRight',text=string)
+
+		try:
+			for tag in tag_tmp.parent:
+
+				if tag.string == string:
+					continue
+				else:
+					for element in tag:
+						try:
+							if len(element.string.strip())>0:
+								self.description = self.description + element.string.strip()
+						except:
+							pass
+
+		except AttributeError:			
+			pass
+
+
+	def get_influence(self,content):
+
+		# get vulnerability description
+		soup = BeautifulSoup(content,"lxml")
+		string = "影响产品".decode('utf-8')
+		self.influence = []
+		
+		# get all of tag who's class is alignRight
+		tag_tmp = soup.find('td',class_='alignRight',text=string)
+
+		try:
+			for tag in tag_tmp.parent:
+
+				if tag.string == string:
+					continue
+				else:
+					for element in tag:
+						try:
+							if len(element.string.strip())>0:
+								self.influence.append(element.string.strip())
+						except:
+							pass
+
+		except AttributeError:			
+			pass
+
 
 	def get_severity(self,content):
 		
 		# get vulnerability severity
 		soup = BeautifulSoup(content,"lxml")
+		string = "危害级别".decode('utf-8')
+		self.severity = ""
 
+		# get all of tag who's class is alignRight
+		tag_tmp = soup.find('td',class_='alignRight',text=string)
 
+		try:
+			for tag in tag_tmp.parent:
+
+				if tag.string == string:
+					continue
+				else:
+					for element in tag:
+						try:
+
+							self.severity = self.severity + "".join(element.string.split()).strip()
+
+						except:
+							pass
+							
+		except AttributeError:					
+			pass
+
+	def get_CVEID(self,content):
+		
+		# get vulnerability severity
+		soup = BeautifulSoup(content,"lxml")
+		string = "CVE ID"
+
+		# get all of tag who's class is alignRight
+		tag_tmp = soup.find('td',class_='alignRight',text=string)
+
+		try:
+			self.cve_id = tag_tmp.parent.find('a').string			
+				
+		except AttributeError:					
+			self.cve_id = "Unknown"
+	
+		
 	def print_vul(self):
 		
 		# Print vulnerability information
 
 		print "Name: ", self.name
 		print "date: ", self.date
-		print "Description:"
-		print self.description
-		#print "severity: " self.severity
+		print "CVE ID: ",self.cve_id
+		print "Severity:",self.severity
+		print "Influence ",self.influence
+		print "Description:",self.description
 		print "more information: ",self.url
+		print
+		print
 
 		
 
