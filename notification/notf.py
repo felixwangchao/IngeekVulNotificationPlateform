@@ -18,11 +18,18 @@ def print_summary():
 	print "************************* summary *************************"
 	print
 	
-	for event in Vul.list:
-		print "[*]",event.name
-		print "[*]",event.url		
-	print
-	print
+	if len(Vul.list) == 0:
+		print "[*]There is no vulnerability today!"
+		print
+		print "***********************************************************"
+	else:
+		for event in Vul.list:
+			print "[*]",event.name
+			print "[*]",event.url		
+			print
+			print
+		
+			get_detail()
 
 
 def print_welcome():
@@ -43,6 +50,8 @@ def get_detail():
 	for event in Vul.list:
 
 		event.get_vul_detail()
+		while len(event.severity) == 0:
+			event.get_vul_detail()
 		event.print_vul()
 
 
@@ -57,7 +66,7 @@ def generate_url(keyword):
 	
 	# generate target url by keywords
 	
-	url = "http://www.cnvd.org.cn/flaw/list.htm?flag=true&keyword="+keyword+"&condition=1&keywordFlag=0&cnvdId=&cnvdIdFlag=0&baseinfoBeanbeginTime=2016-5-10&baseinfoBeanendTime="+get_date()+"&baseinfoBeanFlag=0&refenceInfo=&referenceScope=-1&manufacturerId=-1&categoryId=-1&editionId=-1&causeIdStr=&threadIdStr=&serverityIdStr=&positionIdStr=";
+	url = "http://www.cnvd.org.cn/flaw/list.htm?flag=true&keyword="+keyword+"&condition=1&keywordFlag=0&cnvdId=&cnvdIdFlag=0&baseinfoBeanbeginTime="+get_date()+"&baseinfoBeanendTime="+get_date()+"&baseinfoBeanFlag=0&refenceInfo=&referenceScope=-1&manufacturerId=-1&categoryId=-1&editionId=-1&causeIdStr=&threadIdStr=&serverityIdStr=&positionIdStr=";
 	return url
 
 def get_webcontent(url):
@@ -108,7 +117,7 @@ def main():
 
 
 	print_summary()
-	get_detail()
+
 
 class Vul:
 
@@ -236,11 +245,15 @@ class Vul:
 		
 		# Print vulnerability information
 
+		print "[*]"
 		print "Name: ", self.name
 		print "date: ", self.date
 		print "CVE ID: ",self.cve_id
 		print "Severity:",self.severity
-		print "Influence ",self.influence
+		
+		print "Influence: "
+		for instance in self.influence:	
+			print instance
 		print "Description:",self.description
 		print "more information: ",self.url
 		print
