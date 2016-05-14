@@ -29,7 +29,7 @@ def print_summary():
 			print
 			print
 		
-			get_detail()
+		get_detail()
 
 
 def print_welcome():
@@ -51,7 +51,9 @@ def get_detail():
 
 		event.get_vul_detail()
 		while len(event.severity) == 0:
+
 			event.get_vul_detail()
+
 		event.print_vul()
 
 
