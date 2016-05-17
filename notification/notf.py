@@ -1,5 +1,8 @@
 #!/usr/bin
 # -*- coding: utf-8 -*-
+
+import os
+import sys
 import time
 import httplib
 import lxml.etree as etree
@@ -22,6 +25,7 @@ def print_summary():
 		print "[*]There is no vulnerability today!"
 		print
 		print "***********************************************************"
+		return 1
 	else:
 		for event in Vul.list:
 			print "[*]",event.name
@@ -30,6 +34,7 @@ def print_summary():
 			print
 		
 		get_detail()
+		return 0
 
 
 def print_welcome():
@@ -101,10 +106,25 @@ def html_parser(html):
 	 
 		pass
 
+
+	
 def main():
 
 	global key
 
+	# target filename	
+	target = "./Notif"+get_date()+".txt"
+
+	# if the file already exists, delete it
+	if os.path.exists(target):
+		os.remove(target)
+	
+	# open the file and redirect the output stream
+	f=open(target,'w')
+	old = sys.stdout
+	sys.stdout = f
+
+	# print welcome
 	print_welcome()	
 
 	for keyword in key:
@@ -118,7 +138,14 @@ def main():
 		html_parser(res)
 
 
-	print_summary()
+	if print_summary() == 1:
+		print target
+		print "delete"
+		os.remove(target)
+
+	# redirect the ostream and close the file
+	sys.stdout=old
+	f.close()
 
 
 class Vul:
