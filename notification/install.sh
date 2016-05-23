@@ -12,7 +12,25 @@ sudo apt-get install python-libxml2 python-libxslt
 sudo apt-get install lxml
 
 # 安装bs4模块
-sudo apt-get install python-bs4 python-bs4-doc  
+sudo apt-get install python-bs4 python-bs4-doc
+
+# 获取当前路径
+cur_dir=$(pwd)
+
+# 写入add_task.sh
+echo "#!/bin/sh">add_task.sh
+echo "export  PYTHONPATH=/usr/bin/python" >> add_task.sh
+echo "python $cur_dir/notf.py" >> add_task.sh
+chmod +x $cur_dir/add_task.sh
+
+# 写入crontab,每天早晨9:30分执行一次
+
+echo "30 11 * * * $cur_dir/add_task.sh" > /tmp/vulnotiftask
+echo "30 17 * * * $cur_dir/add_task.sh" >> /tmp/vulnotiftask
+cat /tmp/vulnotiftask | crontab
+rm /tmp/vulnotiftask
+
+
 
 
 

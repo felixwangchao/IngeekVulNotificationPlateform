@@ -1,4 +1,4 @@
-#!/usr/bin
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 import os
@@ -16,6 +16,9 @@ from email.mime.multipart import MIMEMultipart
 
 # list of keyword
 key = ["Redhat","Microsoft+Windows","Apple+Mac+OS","IBM+AIX","HP-UX","Microsoft+SQL+Server","Oracle+MySQL+Server","PostgreSQL","apache","Apache+Tomcat","jboss","Oracle+WebLogic","IBM+WebSphere","Cisco","Squid","PHP","Nginx","Samba","ISC+BIND","Check+Point"]
+
+# list of people to notif
+mail_list = ["chao.wang@isca.com.cn","fangjunnan.zhou@isca.com.cn"]
 
 
 # create a class for vulnerability, it contains description,severity,cveid,influence and url, it contains also print vulnerability method.
@@ -148,14 +151,14 @@ class Vul:
 
 		print "[*]"
 		print "Name: ", self.name
-		print "date: ", self.date
 		print "CVE ID: ",self.cve_id
 		print "Severity:",self.severity
 		
 		print "Influence: "
 		for instance in self.influence:	
 			print instance
-		print "Description:",self.description
+		print "Description:"
+		print self.description
 		print "more information: ",self.url
 		print
 		print
@@ -166,8 +169,8 @@ def print_summary():
 
 	# Print a summary of vulnerability	
 
-	print
-	print "************************* summary *************************"
+	#print
+	#print "************************* summary *************************"
 	print
 	
 	if len(Vul.list) == 0:
@@ -176,11 +179,9 @@ def print_summary():
 		print "***********************************************************"
 		return 1
 	else:
-		for event in Vul.list:
-			print "[*]",event.name
-			print "[*]",event.url		
-			print
-			print
+		#for event in Vul.list:
+		#	print "[*]",event.name	
+		#	print
 		
 		get_detail()
 		return 0
@@ -255,16 +256,16 @@ def html_parser(html):
 	 
 		pass
 		
-def sendemail(string):
+def sendemail(target,string):
 
     # create a email instance
     msg = MIMEMultipart()
 
     # write the content
     msg = MIMEText(string, 'plain', 'utf-8')
-    msg['to'] = 'chao.wang@isca.com.cn'
+    msg['to'] = target
     msg['from'] = 'ingeekvul@sina.com'
-    msg['subject'] = 'hello vulnerability'
+    msg['subject'] = 'New vulnerability!'
 
 
     try:
@@ -282,13 +283,14 @@ def sendemail(string):
 def main():
 
     global key
+    global mail_list
     
-    if os.path.exists('a.txt'):
-        os.remove('a.txt')
+    if os.path.exists('/tmp/vulNotif.txt'):
+        os.remove('/tmp/vulNotif.txt')
 
-    f = codecs.open('a.txt','w','utf-8')
+    f = codecs.open('/tmp/vulNotif.txt','w','utf-8')
 
-    # redirect the output stream to a.txt
+    # redirect the output stream to vulNotif.txt
     old=sys.stdout
     sys.stdout=f 
      
@@ -297,7 +299,7 @@ def main():
     # get the information of vulnerability
     for keyword in key:
 
-	    print "[*]test keyword = ",keyword
+	    #print "[*]test keyword = ",keyword
 
 	    # get web content
 	    res = get_webcontent(generate_url(keyword))
@@ -309,15 +311,16 @@ def main():
     if print_summary() == 1:
 	    sys.stdout=old
 	    f.close()
-	    os.remove('a.txt')
+	    os.remove('/tmp/vulNotif.txt')
     
     else:
         sys.stdout=old
         f.close()
-        f = codecs.open('a.txt','r','utf-8')
+        f = codecs.open('/tmp/vulNotif.txt','r','utf-8')
         string = f.read()
-        sendemail(string)	
-        os.remove('a.txt')
+        for target in mail_list:
+            sendemail(target,string)	
+        os.remove('/tmp/vulNotif.txt')
         	
 
 main()
