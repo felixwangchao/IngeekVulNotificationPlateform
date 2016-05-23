@@ -222,7 +222,7 @@ def generate_url(keyword):
 	
 	# generate target url by keywords
 	
-	url = "http://www.cnvd.org.cn/flaw/list.htm?flag=true&keyword="+keyword+"&condition=1&keywordFlag=0&cnvdId=&cnvdIdFlag=0&baseinfoBeanbeginTime=2016-5-20&baseinfoBeanendTime="+get_date()+"&baseinfoBeanFlag=0&refenceInfo=&referenceScope=-1&manufacturerId=-1&categoryId=-1&editionId=-1&causeIdStr=&threadIdStr=&serverityIdStr=&positionIdStr=";
+	url = "http://www.cnvd.org.cn/flaw/list.htm?flag=true&keyword="+keyword+"&condition=1&keywordFlag=0&cnvdId=&cnvdIdFlag=0&baseinfoBeanbeginTime="+get_date()+"&baseinfoBeanendTime="+get_date()+"&baseinfoBeanFlag=0&refenceInfo=&referenceScope=-1&manufacturerId=-1&categoryId=-1&editionId=-1&causeIdStr=&threadIdStr=&serverityIdStr=&positionIdStr=";
 	return url
 
 def get_webcontent(url):
@@ -309,7 +309,7 @@ def main():
     if print_summary() == 1:
 	    sys.stdout=old
 	    f.close()
-	    os.remove(a.txt)
+	    os.remove('a.txt')
     
     else:
         sys.stdout=old
