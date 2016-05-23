@@ -23,7 +23,7 @@ echo "export  PYTHONPATH=/usr/bin/python" >> add_task.sh
 echo "python $cur_dir/notf.py" >> add_task.sh
 chmod +x $cur_dir/add_task.sh
 
-# 写入crontab,每天早晨9:30分执行一次
+# 写入crontab,每天早晨11:30和下午5:30分别执行一次
 
 echo "30 11 * * * $cur_dir/add_task.sh" > /tmp/vulnotiftask
 echo "30 17 * * * $cur_dir/add_task.sh" >> /tmp/vulnotiftask
